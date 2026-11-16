@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>የመደመር ትውልድ - Quiz</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+        }
+        /* Custom scrollbar for explanations */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-gray-800">
+
+    <div id="app-container" class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden relative fade-in">
+        
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white p-6 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold mb-2">የመደመር ትውልድ - ሁለንተናዊ የምርጫ ጥያቄዎች</h1>
+            <p class="text-indigo-100 text-sm md:text-base">Comprehensive Interactive Quiz & Assessment</p>
+        </header>
+
+        <div class="p-6 md:p-8 min-h-[400px] flex flex-col justify-center">
+            
+            <!-- SCREEN 1: REGISTRATION -->
+            <div id="screen-registration" class="block w-full max-w-md mx-auto fade-in">
+                <h2 class="text-xl font-semibold mb-6 text-center text-gray-700">Student Identification</h2>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name (ሙሉ ስም)</label>
+                    <input type="text" id="studentName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="Enter your full name">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ID Number (መለያ ቁጥር)</label>
+                    <input type="text" id="studentId" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="Enter your ID number">
+                </div>
+                <div id="reg-error" class="hidden mb-4 text-red-500 text-sm font-medium text-center bg-red-50 p-2 rounded-lg">Please fill in both fields.</div>
+                <button onclick="startQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all active:scale-[0.98]">
+                    Start Quiz
+                </button>
+            </div>
+
+            <!-- SCREEN 2: QUIZ INTERFACE -->
+            <div id="screen-quiz" class="hidden flex-col h-full fade-in">
+                <!-- Progress Indicator -->
+                <div class="flex justify-between items-center mb-4">
+                    <span id="student-info-display" class="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full"></span>
+                    <span class="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+                        Question <span id="current-question-num">1</span> of 50
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
+                    <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 2%;"></div>
+                </div>
+
+                <!-- Question Text -->
+                <h3 id="question-text" class="text-lg md:text-xl font-semibold mb-6 text-gray-800 leading-relaxed"></h3>
+
+                <!-- Options -->
+                <div id="options-container" class="space-y-3 mb-6">
+                    <!-- Options injected via JS -->
+                </div>
+
+                <!-- Instant Feedback / Explanation -->
+                <div id="explanation-box" class="hidden mb-6 p-5 rounded-xl border fade-in">
+                    <h4 id="feedback-title" class="font-bold text-lg mb-2"></h4>
+                    <div class="space-y-2 text-sm md:text-base">
+                        <p><strong class="text-indigo-700">ማብራሪያ (Amharic):</strong> <span id="exp-am"></span></p>
+                        <p><strong class="text-indigo-700">Explanation (English):</strong> <span id="exp-en"></span></p>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
+                    <button onclick="prevQuestion()" id="btn-back" class="px-5 py-2.5 rounded-lg font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        &larr; Back
+                    </button>
+                    <button onclick="nextQuestion()" id="btn-next" class="px-5 py-2.5 rounded-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-colors">
+                        Skip / Next &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: RESULTS DASHBOARD -->
+            <div id="screen-result" class="hidden text-center fade-in py-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Quiz Completed!</h2>
+                <p class="text-gray-500 mb-8">Here is the summary of your performance.</p>
+                
+                <div class="bg-gray-50 rounded-xl border border-gray-200 p-6 max-w-md mx-auto text-left mb-8 shadow-inner">
+                    <div class="flex justify-between py-2 border-b border-gray-200">
+                        <span class="font-medium text-gray-600">Student Name:</span>
+                        <span id="res-name" class="font-bold text-gray-900"></span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-gray-200">
+                        <span class="font-medium text-gray-600">ID Number:</span>
+                        <span id="res-id" class="font-bold text-gray-900"></span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-gray-200">
+                        <span class="font-medium text-gray-600">Total Score:</span>
+                        <span id="res-score" class="font-bold text-indigo-600"></span>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <span class="font-medium text-gray-600">Percentage:</span>
+                        <span id="res-percent" class="font-bold text-indigo-600"></span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button onclick="location.reload()" class="px-6 py-3 rounded-lg font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors">
+                        Restart Quiz
+                    </button>
+                    <button onclick="sendEmail()" class="px-6 py-3 rounded-lg font-medium text-white bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200 transition-all flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Submit to Teacher
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // ---------------------------------------------------------
+        // Quiz Data - All 50 Questions mapped from the provided doc
+        // ---------------------------------------------------------
+        // Note: Explanations are crafted to be concise, professional, and directly address the concept.
+        const quizData = [
+            { q: "1. በመጽሐፉ መሠረት ‹‹መደመር›› በዋናነት ምንን ያመለክታል?", opts: ["A) ያለፈውን ታሪክ ሙሉ በሙሉ በመተው አዲስ ስርዓት መፍጠር", "B) ቁስሎች እንዲጠጉ፣ ሕመሞች እንዲድኑና ችግሮች እንዲፈቱ የሚያስችል አዲስ የእሳቤ ማዕቀፍ (ፓራዳይም)", "C) የውጭ ሀገራትን ባህልና ርዕዮተ ዓለም እንዳለ መቀበል", "D) ነባሩን ትውልድ አግልሎ አዲስ ትውልድ ብቻ መፍጠር"], ans: 1, expAm: "‹‹መደመር›› ያለፈውን ስህተት አርሞና ጥንካሬን ይዞ ቁስልን በማዳን አዲስ ሀገራዊ መግባባት መፍጠሪያ መንገድ ነው።", expEn: "'Medemer' (Synergy) is a paradigm aimed at healing wounds, solving problems, and building a better future by utilizing existing strengths." },
+            { q: "2. ‹‹ወግ አጥባቂው ትውልድ›› በመባል የተገለጸው የመጀመሪያው የዘመናዊት ኢትዮጵያ ትውልድ ዋነኛ መገለጫ ምንድን ነው?", opts: ["A) የሶሻሊዝምን ርዕዮተ ዓለም አጥብቆ የተቀበለ መሆኑ", "B) በምርጫ 97 የነቃ የፖለቲካ ተሳትፎ ያደረገ መሆኑ", "C) በአድዋ ድል ኩራት የተሞላና ዘመናዊነትን ከኢትዮጵያ ወግ ጋር አጣጥሞ ለመሄድ ጥረት ያደረገ መሆኑ", "D) የባይተዋርነትና የግለኝነት ስሜት በስፋት የታየበት መሆኑ"], ans: 2, expAm: "ይህ ትውልድ በአድዋ ድል የተነሳ ከፍተኛ የሀገር ፍቅር የነበረው እና ሀገር በቀል ወጎችን ከዘመናዊነት ጋር ለማጣመር የሞከረ ነው።", expEn: "This generation, inspired by the Adwa victory, attempted to blend modernity with Ethiopian traditional values." },
+            { q: "3. ‹‹ወግ አጥባቂው ትውልድ›› ኢትዮጵያን ለማዘመን ሞዴል (አርአያ) አድርጎ የወሰዳት ሀገር የትኛዋ ነበረች?", opts: ["A) ሩሲያ", "B) አሜሪካ", "C) ቻይና", "D) ጃፓን"], ans: 3, expAm: "ጃፓን የራሷን ባህል ሳታጣ በመዘመኗ ለዚህ ትውልድ እንደ ታላቅ አርአያ ትታይ ነበር (Japanizer movement)።", expEn: "Japan was viewed as the ultimate model because it successfully modernized without losing its traditional culture." },
+            { q: "4. ደራሲው ‹‹ህልመኛው ትውልድ›› ሲሉ የሚገልጹት የትኛውን የትውልድ ክፍል ነው?", opts: ["A) የ1960ዎቹን የተማሪዎች ንቅናቄና የማርክሲዝም ርዕዮተ ዓለም ተከታይ ትውልድ", "B) በዘመነ መሳፍንት የነበረውን ትውልድ", "C) የአድዋ ጦርነት ጀግኖችን", "D) ከ2000 ዓ.ም. በኋላ የተፈጠረውን ትውልድ"], ans: 0, expAm: "የ1960ዎቹ ትውልድ ርዕዮተ ዓለምን አጥብቆ በመከተል ማህበረሰባዊ ለውጥ ለማምጣት ያለመ 'ህልመኛ' ትውልድ ተብሎ ይገለጻል።", expEn: "The 1960s generation is dubbed the 'Dreamer Generation' for their ideological pursuit of sweeping Marxist societal change." },
+            { q: "5. ‹‹ህልመኛው ትውልድ›› ካስመዘገባቸው ታሪካዊ ስኬቶች መካከል በጉልህ የሚጠቀሰው የትኛው ነው?", opts: ["A) የገበያ መር ኢኮኖሚን መገንባት", "B) መሬትን ለአራሹ ያደረገው አብዮታዊ ንቅናቄ", "C) የኢንፎርሜሽን ቴክኖሎጂን ማስፋፋት", "D) የብዝሃ ፓርቲ ዴሞክራሲን ማጽናት"], ans: 1, expAm: "መሬት ለአራሹ እንዲሆን ያደረገው ትግል የዚህ ትውልድ ዋነኛ አዎንታዊ የታሪክ ዐሻራ ተደርጎ ይወሰዳል።", expEn: "The 'Land to the Tiller' movement is recognized as the most significant historical achievement of this generation." },
+            { q: "6. ‹‹ውል አልባው ትውልድ›› የተፈጠረበት ዋነኛ የታሪክ አውድ ምንድን ነው?", opts: ["A) የፋሺስት ጣሊያን ወረራ ጊዜ", "B) በሶሻሊዝም ውድቀትና በካፒታሊዝም ጅማሮ መካከል የተፈጠረ የርዕዮተ ዓለም መደነባበር", "C) የኢትዮ-ኤርትራ ጦርነት ወቅት", "D) የዘመነ መሳፍንት ፍጻሜ"], ans: 1, expAm: "በሶሻሊዝም እና ካፒታሊዝም ሽግግር ወቅት የተፈጠረው ርዕዮተ ዓለማዊ ግራ መጋባት ይህን ትውልድ ውል አልባ አድርጎታል።", expEn: "The ideological confusion bridging the fall of socialism and the dawn of capitalism created a directionless generation." },
+            { q: "7. ‹‹ባይተዋሩ ትውልድ›› ተብሎ የተሰየመው ትውልድ ከምን ጋር በተያያዘ ነው ‹ባይተዋር› የሆነው?", opts: ["A) ከዘመናዊ ቴክኖሎጂ ጋር", "B) ከምዕራባውያን ባህል ጋር", "C) ለገዛ ሀገሩ፣ ታሪኩ እና ለሚኖርበት ህብረተሰብ", "D) ከትምህርትና ከስፖርት ጋር"], ans: 2, expAm: "በልዩነት ፖለቲካና በዓለም አቀፋዊነት ጫና ምክንያት ለሀገሩ፣ ለታሪኩና ለማህበረሰቡ ባይተዋር (እንግዳ) ሆኗል።", expEn: "Due to identity politics and globalization, this generation became alienated from its own country, history, and society." },
+            { q: "8. ናሲም ኒኮላስ ታሌብ ‹‹የጥቁር ዳክዬ (Black Swan) ክስተቶች›› በማለት የሚገልጻቸው ምንድን ናቸው?", opts: ["A) በየቀኑ የሚያጋጥሙ የተለመዱ ክስተቶች", "B) ለመገመት አዳጋች የሆኑ፣ ነገር ግን ከተከሰቱ ከፍተኛ ታሪካዊ ለውጥ የሚያስከትሉ ክስተቶች", "C) በምርጫ ጊዜ የሚፈጠሩ የፖለቲካ ንግግሮች", "D) ቀስ በቀስ የሚመጡ የኢኮኖሚ እድገቶች"], ans: 1, expAm: "የጥቁር ዳክዬ ክስተቶች ያልታሰቡ ነገር ግን ዓለምን የሚቀይሩ ታላላቅ ክስተቶች ናቸው።", expEn: "'Black Swan' events are highly improbable and unpredictable events that cause massive, paradigm-shifting changes." },
+            { q: "9. ‹‹ግራጫ ጦርነት›› (Gray Zone Warfare) በመጽሐፉ እንዴት ተብራርቷል?", opts: ["A) ሙሉ ለሙሉ ባህላዊ በሆኑ የጦር መሳሪያዎች የሚደረግ ግልጽ ጦርነት", "B) ከተለምዶ ጦርነት ደረጃ ያነሰ፣ ነገር ግን በስነ ልቦና፣ በመረጃ እና በኢኮኖሚ ተገዳዳሪን የማዳከም ስልት", "C) በሁለት ኃያላን ሀገራት መካከል ብቻ የሚደረግ የኒውክሌር ጦርነት", "D) በቀይ ባህር አካባቢ የሚካሄድ የባህር ላይ ጦርነት"], ans: 1, expAm: "ግራጫ ጦርነት በቀጥታ ከሚደረግ ጦርነት በታች ሆኖ፣ በተለያዩ ያልተለመዱ መንገዶች ጠላትን የማዳከም ስልት ነው።", expEn: "Gray Zone Warfare involves psychological, informational, and economic tactics to weaken an adversary without crossing into conventional war." },
+            { q: "10. ‹‹ክሡትነት›› (Emergence) የሚለው ጽንሰ ሀሳብ ምንን ይገልጻል?", opts: ["A) ግለሰቦች ለብቻቸው የሚያመጡትን ውጤት", "B) የውጭ ኃይሎች በሀገር ውስጥ የሚያደርጉትን ጣልቃ ገብነት", "C) ጥቃቅን የሚመስሉ ዐቅሞች በኅብረት ተሰባስበው የገዘፈ አዲስ ለውጥና ሥርዓት መፍጠር መቻላቸውን", "D) የሀገራትን መከፋፈልና ወደ ተለያዩ ክልሎች መበታተን"], ans: 2, expAm: "ክሡትነት ትናንሽ አቅሞች ተባብረው እና ተደምረው ከድምራቸው በላይ የሆነ አዲስ ትልቅ ውጤት ማምጣታቸው ነው።", expEn: "Emergence refers to how small, synergistic forces combine to create a new, massively impactful system greater than the sum of its parts." },
+            { q: "11. ‹‹የብቸኝነት ጉድለት›› የሚያስከትለው መዘዝ ምንድን ነው?", opts: ["A) ሀገራዊ ክሡትነትን እና አብሮ ማደግን ያመጣል", "B) እያነሱ፣ እየተዳከሙ ከመሄድ አልፎ ለመክሰም እና ለህልውና እጦት ይዳርጋል", "C) የጋራ ብልጽግናንና የኢኮኖሚ እድገትን ያረጋግጣል", "D) በዓለም አቀፍ ደረጃ ነጻነትን ያጠናክራል"], ans: 1, expAm: "የብቸኝነት ጉድለት መተባበር አለመቻልንና በመጨረሻም ወደ መዳከምና መክሰም (extinction) የሚያመራ ነው።", expEn: "The 'deficit of isolation' inevitably leads to weakening, regression, and ultimately an existential threat to survival." },
+            { q: "12. ደራሲው የኢትዮጵያን የረሃብ ታሪክ (ክፉ ቀን) በተመለከተ የሚያነሱት ቁልፍ ሀሳብ ምንድን ነው?", opts: ["A) ረሃብ የኢትዮጵያውያን ተፈጥሯዊና የማይቀየር መገለጫ መሆኑን", "B) አውሮፓውያን ከኢትዮጵያ የበለጠ የረሃብ ታሪክ ቢኖራቸውም፣ ኢትዮጵያን የረሃብ ተምሳሌት አድርገው የመሳል ሸፍጥ መኖሩን", "C) ረሃቡ የተከሰተው የህዝብ ብዛት ከመጠን በላይ በመጨመሩ ብቻ መሆኑን", "D) የረሃቡ ብቸኛ መፍትሄ የውጭ ሀገራት የምግብ እርዳታ መሆኑን"], ans: 1, expAm: "ምዕራባውያን ከኢትዮጵያ የባሰ የረሃብ ታሪክ የነበራቸው ቢሆንም፣ ሀገሪቱን የረሃብ ምልክት አድርገው በዘረኝነት ቀርጸዋታል።", expEn: "Despite Western countries historically facing worse famines, they maliciously branded Ethiopia as the global symbol of starvation." },
+            { q: "13. በመጽሐፉ የፖለቲካ ‹‹አክራሪነት›› ዋነኛ አደጋ ተደርጎ የተጠቀሰው ምንድን ነው?", opts: ["A) የውይይትና የመቻቻል ባህልን በማዳከም ልዩነትን አለአግባብ መለጠጥና መነጣጠል", "B) የውጭ ቀጥታ ኢንቨስትመንትን መጨመር", "C) የሀገሪቱን ባህላዊ እሴቶች በፍጥነት ማሳደግ", "D) የቴክኖሎጂ ሽግግርን ማፋጠንና ኢኮኖሚን መገንባት"], ans: 0, expAm: "አክራሪነት ልዩነትን በጠላትነት በመተርጎም መቻቻልን ያጠፋል፤ ማህበራዊ ትስስርንም ይበጥሳል።", expEn: "Extremism destroys the culture of dialogue and tolerance by violently stretching differences into absolute enmity." },
+            { q: "14. በአፍሪካ ፖለቲካ ውስጥ ኢትዮጵያ የነበራት የጸረ-ቅኝ ግዛት ተምሳሌትነት ሚና በአሁኑ ዘመን ወደ ምን መሸጋገር እንዳለበት ይመከራል?", opts: ["A) የጦር መሳሪያ አምራችነትና አቅራቢነት", "B) አፍሪካን ከኢኮኖሚያዊ ዝቅጠት በማላቀቅ የሁለንተናዊ አርነትና የፓን አፍሪካኒዝም ስበት ማዕከል ወደ መሆን", "C) ድንበሯን በመዝጋት ራስን ወደ ማግለል ፖሊሲ", "D) የምዕራባውያንን ባህል በብቸኝነት ወደ ማስፋፋት"], ans: 1, expAm: "የቀደመው ሚና የነጻነት ተምሳሌትነት ሲሆን፣ የአሁኑ ሚና ደግሞ የኢኮኖሚና ሁለንተናዊ የፓን-አፍሪካኒዝም ልማት ማዕከል መሆን ነው።", expEn: "Ethiopia must transition from its historical role as a symbol of anti-colonialism to a modern hub driving Pan-African economic and holistic liberation." },
+            { q: "15. ‹‹ባህል›› እና ‹‹ሥልጣኔ›› ያላቸውን ግንኙነት መጽሐፉ እንዴት ያስቀምጠዋል?", opts: ["A) ሥልጣኔ ያለ ባህል ሊኖር ይችላል፣ ባህል ግን ያለ ሥልጣኔ አይኖርም", "B) ባህል የሥልጣኔ ግብ ሲሆን፣ ሥልጣኔ ደግሞ ባህልን የማሳደጊያ መንገድ ነው", "C) ሁለቱም ፈጽሞ የተራራቁና የማይገናኙ ጽንሰ ሀሳቦች ናቸው", "D) ባህል የቁሳዊ እድገት (የህንጻና መንገዶች) ብቻ ውጤት ነው"], ans: 1, expAm: "ሥልጣኔ የዳበረና የረቀቀ ባህልን ለመፍጠር የሚረዳ ሂደት/መንገድ ነው።", expEn: "Culture is the ultimate goal of civilization, while civilization is the vehicle/method for elevating and refining culture." },
+            { q: "16. በመደመር እሳቤ መሠረት የ‹‹ቅቡልነት›› (Legitimacy) ክፍተት የሚፈጠረው መቼ ነው?", opts: ["A) መንግስት የውጭ ብድር ሲያገኝና ታክስ ሲጨምር", "B) ሕዝቡና ልሂቃኑ ሀገረ መንግስቱን የፍላጎታቸውና የጥቅማቸው አስከባሪ አድርገው ሳይቀበሉት ሲቀሩ", "C) ሀገሪቱ አዲስ ሕገ መንግስት ለማውጣት ስትሞክር", "D) ምርጫ በየአምስት ዓመቱ ሳይካሄድ ሲቀር"], ans: 1, expAm: "ሕዝብ መዋቅሩን የኔ ነው፣ ጥቅሜን ያስጠብቃል ብሎ ካላመነ የቅቡልነት (Legitimacy) እጦት ይፈጠራል።", expEn: "A legitimacy gap occurs when the public and elites no longer believe the state structure serves or protects their interests." },
+            { q: "17. አዲሱ ‹‹የመደመር ትውልድ›› ሊላበሳቸው ከሚገቡ ባህሪያት መካከል የማይመደበው የትኛው ነው?", opts: ["A) የጀብደኝነትን ስሜትና የእርስ በርስ መካረርን ማበረታታት", "B) በምክንያትና በሀሳብ የበላይነት ማመን", "C) ሁለንተናዊ አርበኝነትና ተፈጥሮን መንከባከብ", "D) ብዝኃነትን ከሀገራዊ አንድነት ጋር በተገቢው ማጣመር"], ans: 0, expAm: "የመደመር ትውልድ ከጀብደኝነት፣ አክራሪነትና ጽንፈኝነት የጸዳ መሆን አለበት።", expEn: "The Medemer generation explicitly rejects impulsive adventurism and internal polarization in favor of unity and reason." },
+            { q: "18. 'የሰው ወርቅ አያደምቅ' የሚለው አባባል በመጽሐፉ ውስጥ ለምን ዓላማ ተጠቅሷል?", opts: ["A) የውጭ ሀገራትን የገንዘብ እርዳታ ለማበረታታት", "B) ትውልዱ የውጭውን ባህል እያስመሰለ ከመኖር ይልቅ የራሱን እሴትና ሕልም ፈልጎ ማግኘት እንዳለበት ለማሳሰብ", "C) የወርቅ ማዕድን ፍለጋንና ቁሳዊ ሀብትን ለማስፋፋት", "D) ኢትዮጵያውያን ወደ ውጭ ሀገር መሰደድ እንዳለባቸው ለማሳየት"], ans: 1, expAm: "ትውልዱ ሌሎችን ከመኮረጅ ወጥቶ የራሱን እሴት፣ ባህልና ህልም መገንባት እንዳለበት ለማስገንዘብ ነው።", expEn: "The proverb is used to urge the generation to stop imitating foreign cultures and instead discover and polish its own values and dreams." },
+            { q: "19. አክራሪነት በሀገራችን ፖለቲካ ውስጥ ሲንጸባረቅ ያስከተላቸው ሶስት ተግዳሮቶች የትኞቹ ናቸው?", opts: ["A) ስር ነቀልነት፣ ደካማ ዴሞክራሲያዊ ባህል እና ደም አፋሳሽ የትግል ስልት", "B) የሀሳብ ብዙሃነት፣ የኢኮኖሚ እድገት እና ቴክኖሎጂ", "C) ጠንካራ የሀገረ መንግስት ቅቡልነት፣ ሰላም እና ብልጽግና", "D) የህዝብ ለህዝብ ትስስር፣ ነጻነት እና እኩልነት"], ans: 0, expAm: "አክራሪነት በኢትዮጵያ ፖለቲካ ስር ነቀል አፍራሽነትን፣ የዴሞክራሲ እጦትን እና ደም አፋሳሽነትን አምጥቷል።", expEn: "Extremism has burdened Ethiopian politics with radical destructiveness, a weak democratic culture, and violent struggle tactics." },
+            { q: "20. ከሚከተሉት ውስጥ ‹‹ገጠር ፈጠር ባህል››ን በትክክል የሚገልጸው የትኛው ነው?", opts: ["A) የጋራ የሕይወት ዘይቤ በመሆን ብዙ የተለያዩ ማህበረሰቦችን የሚያስተሳስር", "B) ከጥንታዊ አኗኗር ጋር የተሳሰረ፣ የትናንትን ስልትና ቀለም ጠብቆ የሚሄድ", "C) በኢንዱስትሪ መስፋፋት የተፈጠረ አዲስ አኗኗር", "D) ከሀገራት ወሰን የሚያልፍ ዓለም አቀፋዊ የፍጆታ ባህል"], ans: 1, expAm: "ገጠር ፈጠር ባህል ከትናንት ጋር የተቆራኘ፣ ብዙም የማይለዋወጥና የተወሰነ አካባቢን የሚገልጽ ነው።", expEn: "'Rural-born culture' is characterized by its deep ties to tradition, preserving past aesthetics and methods with little rapid change." },
+            { q: "21. መጽሐፉ ‹‹የአድዋ ድል››ን የምን ማሳያ አድርጎ ያቀርበዋል?", opts: ["A) የክሡትነት (ተባብሮ በመቆም የተገኘ ግዙፍ ኃይልና ስኬት) ማሳያ", "B) የብቸኝነት ጉድለት ማሳያ", "C) የፖለቲካ ቅቡልነት ማጣት ማሳያ", "D) የስነ ልቦና ጦርነት ሽንፈት ማሳያ"], ans: 0, expAm: "አድዋ ልዩነቶችን ትቶ በአንድነት በመቆም (ክሡትነት) የማይቻለውን የቻሉበት ታላቅ ድል ነው።", expEn: "The Victory of Adwa is presented as the ultimate example of 'Emergence'—achieving immense power and success through unity." },
+            { q: "22. በቴክኖሎጂ ለውጥ እና በማህበራዊ ሚዲያ መስፋፋት ምክንያት በመንግስታት ላይ የመጣው አዲስ ፈተና ምንድን ነው?", opts: ["A) የባህል ብዝሃነትን ሙሉ በሙሉ ማጥፋቱ", "B) የመንግስትን የትርክት የበላይነት በመሸርሸር አፍራሽ ትርክቶችና የውጭ ኃይላት ጫና እንዲበረታ ማድረጉ", "C) የትምህርት ጥራትን በከፍተኛ ደረጃ መጨመሩ", "D) የከተማ ፈጠር ባህልን ሙሉ በሙሉ ማጥፋቱ"], ans: 1, expAm: "ማህበራዊ ሚዲያ የመረጃ ስርጭትን ለሁሉም ክፍት በማድረጉ የመንግስት ትርክት የበላይነትን ተገዳድሯል።", expEn: "The proliferation of social media has eroded state narrative monopolies, amplifying destructive narratives and foreign influence." },
+            { q: "23. ‹‹ባንዳነት›› በመጽሐፉ ውስጥ እንዴት ተገልጿል?", opts: ["A) የላቀ የፖለቲካ ብልሃትና ስልት", "B) በገንዘብ፣ በዕውቀት ወይም በሌላ ጉዳይ ተታሎ ሀገርን ለጠላት አሳልፎ የመስጠት የራስ ንቀት በሽታ", "C) ከውጭ ሀገራት ጋር የሚደረግ ጤናማ የንግድ ልውውጥ", "D) ቴክኖሎጂን ከምዕራባውያን የመቅዳት ሂደት"], ans: 1, expAm: "ባንዳነት ራስን አሳንሶ የማየት፣ ለራስ ክብር ያለመስጠትና ሀገርን አሳልፎ የመስጠት የህሊና በሽታ ነው።", expEn: "Bandanit (Treason/Collaboration) is described as a psychological disease of self-contempt, selling out one's country for shallow gains." },
+            { q: "24. የሀገራችን የፖለቲካ ችግሮች መፍትሄ ለማምጣት ከዚህ ቀደም የተሞከሩት ‹‹አቅላይ›› (Reductionist) አካሄዶች ምን ነበሩ?", opts: ["A) ብዝሃነትን በማጥፋት አንድነትን ለማምጣት መሞከር እና ልዩነትን ብቻ በማጉላት ሀገርን መገንባት መሞከር", "B) ሁሉንም የህብረተሰብ ክፍሎች በእኩልነት ማሳተፍ", "C) የኢኮኖሚ እድገትን ብቻ ትኩረት ማድረግ", "D) የውጭ ኃይላትን በሽምግልና መጋበዝ"], ans: 0, expAm: "ቀደምት መንግስታት ወይ ብዝሃነትን አፍነው አሀዳዊነትን አመጡ፣ ወይ አንድነትን አፍነው ልዩነትን ብቻ አጉልተው ችግር ፈጠሩ።", expEn: "Previous reductionist approaches either tried to erase diversity to force unity or hyper-focused on differences at the expense of national cohesion." },
+            { q: "25. ‹‹የመደመር ትውልድ›› ከሌሎች አለም አቀፍ ሀገራት ጋር ሊኖረው የሚገባው ግንኙነት ምን መሆን እንዳለበት ተገልጿል?", opts: ["A) በሮቹን ሙሉ በሙሉ በመዝጋት በብቸኝነት መኖር", "B) የሌሎችን ባህል በጭፍን በመኮረጅ ጥገኛ መሆን", "C) አዲስ ነገርን ለመማር ክፍት ሆኖ፣ የራሱን እሴትና ሉዓላዊነት ሳያስደፍር ተወዳዳሪ መሆን", "D) ጦርነትን ብቻ በመምረጥ ኃይሉን ማሳየት"], ans: 2, expAm: "ትውልዱ ዓለምን ለማወቅ ክፍት የሆነ፣ ከሌሎች የሚማር፣ ነገር ግን የራሱን ሉዓላዊነትና እሴት አስከብሮ የሚወዳደር መሆን አለበት።", expEn: "The generation should remain open to global learning and cooperation while fiercely maintaining its competitive edge and sovereignty." },
+            { q: "26. የገዳ ስርዓት በመጽሐፉ ውስጥ የትኛውን ሀሳብ ለማስረዳት እንደ ምሳሌ ቀርቧል?", opts: ["A) የኢኮኖሚ እድገትን", "B) በእድሜ እርከን ላይ የተመሰረተ ማህበራዊና ፖለቲካዊ የትውልድ የኃላፊነት ክፍፍልን", "C) የዘመናዊ ትምህርት መስፋፋትን", "D) የውጭ ንግድ ግንኙነትን"], ans: 1, expAm: "በገዳ ስርዓት የዕድሜ እርከኖች የስራ ድርሻንና ሀላፊነትን (መማር፣ መምራት፣ መምከር) እንዴት እንደሚወስኑ ለማሳየት ነው።", expEn: "The Gadaa system illustrates a structured generational transition of social, political, and leadership responsibilities based on age." },
+            { q: "27. ፓራዳይም (Paradigm) ሲባል ምን ማለት ነው?", opts: ["A) አዲስ የቴክኖሎጂ ፈጠራ", "B) ዓለምን የምንመለከትበት፣ ችግሮችን የምንረዳበት እና ምላሽ የምንሰጥበት አጠቃላይ የእሳቤ ማዕቀፍ", "C) የፖለቲካ ፓርቲዎች ህገ ደንብ", "D) ዓለም አቀፍ የንግድ ስምምነት"], ans: 1, expAm: "ፓራዳይም አንድ ማህበረሰብ ወይም ትውልድ እውነታን የሚረዳበት እና ችግሮቹን የሚፈታበት ዋና የእይታ መነጽር ነው።", expEn: "A paradigm is the overarching intellectual framework or lens through which a society understands the world and addresses its problems." },
+            { q: "28. ‹‹ጀብደኝነት›› ከ ‹‹ጀግንነት›› በምን ይለያል?", opts: ["A) ጀብደኝነት ዐቅምን ያላገናዘበ አጉል ድፍረት ሲሆን፣ ጀግንነት ግን ዓላማንና ዐቅምን ለይቶ የሚያውቅ ጠቢብነት ነው", "B) ጀብደኝነት ሁልጊዜ አሸናፊ ያደርጋል፣ ጀግንነት ግን ያሸንፋል ተብሎ አይታሰብም", "C) ጀብደኝነት ለሀገር እድገት ይጠቅማል፣ ጀግንነት ግን ይጎዳል", "D) ሁለቱም ምንም ልዩነት የላቸውም"], ans: 0, expAm: "ጀብደኛ ውጤቱን ሳያሰላ በእብሪት የሚገባ ሲሆን፣ ጀግና ግን አቅሙንና አላማውን አውቆ የሚጋፈጥ ነው።", expEn: "Adventurism is reckless bravery blind to capacity, whereas heroism is profound wisdom acting with clear purpose and calculated strength." },
+            { q: "29. ፕሮፌሰር አክሊሉ ለማ በእንዶድ ምርምራቸው ያጋጠማቸው መሰረታዊ እንቅፋት ምን ነበር?", opts: ["A) የእንዶድ ተክል በኢትዮጵያ መጥፋቱ", "B) የኢትዮጵያ ህዝብ ምርምሩን አለመደገፉ", "C) በበለጸጉ ሀገራት የሚገኙ ግለሰቦችና ድርጅቶች የዕውቀት የበላይነትን በሞኖፖል ለመቆጣጠር የሚያደርጉት ጫና", "D) የምርምር መሳሪያዎች ፈጽሞ አለመኖራቸው"], ans: 2, expAm: "ያደጉት ሀገራት የዕውቀት የበላይነትን (Knowledge Monopoly) ላለማጣት ሲሉ በአፍሪካ ተመራማሪዎች ላይ የሚያደርሱትን ስውር ጫና ለማሳየት ተጠቅሷል።", expEn: "It highlights the subtle sabotage and gatekeeping by industrialized nations attempting to maintain a monopoly on scientific knowledge." },
+            { q: "30. በዘመናዊው ዓለም ውስጥ የአንድ ሀገር ሉዓላዊነት የመጨረሻው ምሽግ ተደርጎ በመጽሐፉ የተገለጸው ምንድን ነው?", opts: ["A) የጦር መሳሪያ ብዛት", "B) የህዝብ ብዛት", "C) በዕውቀት ራስን መቻልና የተወዳዳሪ የዕውቀት ባለቤት መሆን", "D) የውጭ ምንዛሬ ክምችት"], ans: 2, expAm: "እውቀት ከሌለ የትኛውም ሀብት ቢኖር ጥገኝነት አይቀርም። ስለዚህ እውቀት የሉዓላዊነት ዋና ምሽግ ነው።", expEn: "In the modern era, self-reliance and competitiveness in knowledge and innovation serve as the ultimate fortress of a nation's sovereignty." },
+            { q: "31. በመጽሐፉ መሰረት ‹‹ውበት›› (የፓርኮችና የከተማ ጽዳት) ለምን አስፈላጊ ነው?", opts: ["A) ለቅንጦትና አላስፈላጊ ወጪ ለማውጣት", "B) የህዝብን የስራ ባህል ለማሻሻል፣ ጤናን ለመጠበቅ እና የሀገርን ኢኮኖሚ ለማሳደግ", "C) የውጭ ዜጎችን ብቻ ለማስደሰት", "D) ታሪካዊ ቦታዎችን ለማጥፋት"], ans: 1, expAm: "ጽዱ እና ውብ አካባቢ ለነዋሪው የስነ-ልቦና እርካታ፣ ጤና እና የፈጠራ ስራ መነሳሳትን ይሰጣል።", expEn: "Aesthetic environments are not luxuries; they critically enhance psychological well-being, public health, work ethic, and national economy." },
+            { q: "32. ‹‹ተስፋ አልባዋ አፍሪካ (Hopeless Africa)›› የሚለው ትርክት ዋነኛ አላማ ምንድን ነው?", opts: ["A) ለአፍሪካውያን የኢኮኖሚ ድጋፍ ለማድረግ", "B) የአፍሪካን ዐቅም በማሳነስ የተዛባ የዓለም አቀፍ ግንኙነትን (የበላይነትን) ለማስቀጠል", "C) አፍሪካውያን በራሳቸው እንዲተማመኑ ለማበረታታት", "D) አፍሪካን ወደ አንድ ሀገር ለማዋሃድ"], ans: 1, expAm: "ይህ ትርክት አፍሪካ ሁሌም ጥገኛ ሆና እንድትቀጥል በማሰብ የሚነዛ የስነ-ልቦና ጫና ነው።", expEn: "This narrative is a deliberate psychological tool used to diminish Africa's potential and maintain an imbalanced, exploitative global hierarchy." },
+            { q: "33. የቀይ ባህር አካባቢ ጂኦፖለቲካ ለኢትዮጵያ ያለው ትርጉም ምንድን ነው?", opts: ["A) ኢትዮጵያ ከቀይ ባህር ስትርቅ የምትሟሽሽ፣ ስትቀርብ ደግሞ ገናና የምትሆን መሆኗ", "B) ምንም የኢኮኖሚ ጥቅም የሌለው መሆኑ", "C) የውጭ ሀገራት ብቻ ሊጠቀሙበት የሚገባ መሆኑ", "D) ከኢትዮጵያ ታሪክ ጋር ምንም ግንኙነት የሌለው መሆኑ"], ans: 0, expAm: "የኢትዮጵያ ታሪካዊ ገናናነት ከቀይ ባህር ጋር ካላት ቅርበት እና ተጽዕኖ ጋር ቀጥታ ግንኙነት አለው።", expEn: "Ethiopia's historical and geopolitical greatness has always been directly correlated with its proximity to and influence over the Red Sea." },
+            { q: "34. በመደመር ዘመን የትውልድ ግንባታ ዋነኛ ቀመር (Formula) ምንድን ነው?", opts: ["A) ያለፈውን ታሪክ ሙሉ በሙሉ መካድ", "B) የብቸኝነት ጉድለትን በማስወገድ በኅብረት (ክሡትነት) ታላቅ አቅም መፍጠር", "C) የውጭ ሀገራትን አኗኗር በግዴታ መጫን", "D) በቋንቋ ላይ የተመሰረተ ክፍፍልን ማጠናከር"], ans: 1, expAm: "መደመር ማለት ግለሰባዊነትን (ብቸኝነትን) በመተው በመተባበር ታላቅ አቅምን (ክሡትነትን) መገንባት ነው።", expEn: "The core formula is overcoming the 'deficit of isolation' to build immense, emergent power (Emergence) through unity and synergy." },
+            { q: "35. የኢትዮጵያ የረሃብ ታሪክ ዋነኛ መንስኤዎች ተደርገው የተጠቀሱት የትኞቹ ናቸው?", opts: ["A) የህዝብ ብዛት መጨመር እና የቴክኖሎጂ እጦት", "B) ድርቅ (የተፈጥሮ አደጋ) እና የእርስ በርስ ጦርነት", "C) የውጭ ሀገራት ጫና እና የባህል መጥፋት", "D) የከተሞች መስፋፋት እና የደን ጭፍጨፋ"], ans: 1, expAm: "ድርቅ ተፈጥሯዊ መንስኤ ሲሆን፣ ጦርነት ደግሞ ማህበረሰቡን በማፈናቀል ረሃብን የሚያባብስ ሰው ሰራሽ መንስኤ ነው።", expEn: "The devastating history of famine was primarily driven by the deadly combination of natural drought and persistent internal warfare." },
+            { q: "36. ‹‹ከተማ ፈጠር ባህል›› ከገጠር ፈጠር ባህል የሚለየው በምንድን ነው?", opts: ["A) ከተማ ፈጠር ባህል የአንድ አካባቢን ማህበረሰብ ብቻ ይወክላል", "B) ከተማ ፈጠር ባህል በጥንታዊ አኗኗር ላይ ብቻ የተመሰረተ ነው", "C) ከተማ ፈጠር ባህል የተለያዩ አካባቢ ማህበረሰቦችን በማስተሳሰር ሀገራዊና አህጉራዊ ተጽዕኖ ያለው የጋራ ባህል ነው", "D) ከተማ ፈጠር ባህል ቶሎ የመለወጥ ባህሪ የለውም"], ans: 2, expAm: "ከተማ ፈጠር ባህል የልዩ ልዩ ማንነቶች ስብስብ በመሆን የጋራ ሀገራዊ ባህልን ይፈጥራል።", expEn: "Unlike localized rural cultures, urban-born culture synthesizes diverse backgrounds into a dynamic, shared national or global lifestyle." },
+            { q: "37. የ‹‹መደመር ትውልድ›› ከቀደሙት ትውልዶች የወሰደው / ሊወስደው የሚገባ ‹በጎ ወረት› (Positive legacy) ምንድን ነው?", opts: ["A) የፖለቲካ አክራሪነት", "B) ለእምነትና ለሀገር መስዋዕት መሆን፣ የሀገር ፍቅር እና ታላላቅ ፕሮጀክቶችን ደፍሮ መሥራት", "C) የውጭ ርዕዮተ ዓለምን በጭፍን መቀበል", "D) እርስ በርስ መከፋፈልና መጋጨት"], ans: 1, expAm: "የቀደሙት ትውልዶች የነበራቸው ሀገርን ያለማስደፈር ጽናት እና ለሀገር መሰዋትነት ታላቅ ወረታቸው ነው።", expEn: "The profound patriotism, bold willingness to sacrifice for the nation, and courage to undertake massive projects are the vital positive legacies to inherit." },
+            { q: "38. የሰው ልጅ አንጎል (ኒውሮን) እና የጉንዳኖች አኗኗር በመጽሐፉ ውስጥ ለምን ማሳያነት ቀርበዋል?", opts: ["A) የሳይንስን እድገት ለማሳየት", "B) ንዑሳን አካላት ተናብበው ሲሰሩ (ክሡትነት) ከብቸኝነት አቅማቸው የላቀ ታላቅ ስርዓት መፍጠር እንደሚችሉ ለማስረዳት", "C) የሰው ልጅ ከእንስሳት ጋር ያለውን ልዩነት ለማጉላት", "D) የባህልን ምንነት ለማብራራት"], ans: 1, expAm: "ትንንሽ ሴሎች ወይም ትናንሽ ጉንዳኖች ተባብረው አእምሮን ወይም ግዙፍ መኖሪያን እንደሚፈጥሩ ሁሉ፣ የመደመር ውጤትም ያንን ይመስላል።", expEn: "They illustrate 'Emergence': how tiny, seemingly insignificant individual units synergize to form incredibly complex and powerful systems." },
+            { q: "39. ‹‹የመደመር ትውልድ›› የአፍሪካን የነጻነት ትግል ካስጀመሩት ቀዳሚ ትውልዶች በምን ይለያል?", opts: ["A) የጸረ-ቅኝ ግዛት ትግል በማድረግ", "B) አፍሪካን ከኢኮኖሚያዊ ዝቅጠት ለማላቀቅና ሁለንተናዊ አርነትን ለማረጋገጥ በመስራት", "C) የውጭ ኃይላትን ድጋፍ በመጠየቅ", "D) ጦርነትን በማስፋፋት"], ans: 1, expAm: "የቀድሞው ትውልድ ትግል ከቅኝ ግዛት መላቀቅ ነበር፣ የአሁኑ ትውልድ ትግል ደግሞ የኢኮኖሚ ነጻነትን ማምጣት ነው።", expEn: "While predecessors fought for political anti-colonial independence, the Medemer generation strives for total economic and holistic liberation." },
+            { q: "40. በመጽሐፉ ማጠቃለያ መሰረት ኢትዮጵያን ለማበልጸግና ወደፊት ለማራመድ የትውልዱ ትልቁ መሳሪያ ምንድን ነው?", opts: ["A) የውጭ ብድር ማግኘት", "B) ልዩነትን በማክበር፣ በሀሳብ የበላይነት በማመን እና ዐቅምን አስተባብሮ ጠንካራ ኀብረት በመፍጠር መንቀሳቀስ", "C) አዲስ የጦር መሳሪያ መግዛት", "D) ባህላዊ ቅርሶችን ማጥፋት"], ans: 1, expAm: "እውነተኛ ብልጽግና የሚመጣው መተባበርን፣ መከባበርንና ዐቅምን በአንድ ላይ ማስተባበርን (መደመርን) ሲለማመዱ ነው።", expEn: "True national advancement relies on respecting diversity, trusting the supremacy of ideas, and syndicating collective capacities for unity." },
+            { q: "41. የቻይና የዛሬ ጥንካሬ ምንጭ በመጽሐፉ እንዴት ተብራርቷል?", opts: ["A) የውጭ ሀገራት ኢንቨስትመንት ብቻ በመሆኑ", "B) የትውልዳዊ መወራረስ እና የቀጣይ ትውልድ የቀደመውን ስህተት እያረመ የመገንባት (ቅብብሎሽ) ውጤት በመሆኑ", "C) በማኦ ዘመን የተሰራው ስራ ብቻ በቂ በመሆኑ", "D) ዴሞክራሲያዊ ስርዓትን ሙሉ በሙሉ በመተግበሯ"], ans: 1, expAm: "ቻይና ከማኦ እስከ ዥ ፒንግ ያሉ ትውልዶቿ በየዘመኑ የተሰሩትን ስራዎች ሳያፈርሱ ስህተትን እያረሙ በማደጋቸው ነው።", expEn: "China's strength is attributed to seamless generational continuity, where each leadership generation corrects past mistakes while building upon previous foundations." },
+            { q: "42. የፖለቲካ ስርዓት ወደ ‹‹ሻጋታ›› እንዳይሄድ ምን መደረግ አለበት?", opts: ["A) የውጭ ኃይላትን መጋበዝ", "B) ነባሩን ስርዓት በኃይል ማፍረስ", "C) ለተፈጠሩ ውስጣዊና ውጫዊ ፈተናዎች ምላሽ የሚሰጥ የፓራዳይም ለውጥ ማምጣት", "D) መሪዎችን በየዓመቱ መቀየር"], ans: 2, expAm: "ስርዓት እንዳያረጅና እንዳይሻግት የፓራዳይም ለውጥ (አዲስ አስተሳሰብ) የግድ ይላል።", expEn: "To prevent a political system from stagnating ('molding'), it must undergo periodic paradigm shifts that respond to new internal and external challenges." },
+            { q: "43. በጃፓን ‹‹New Breed Generation›› ተብሎ የሚጠራው ትውልድ መለያ ባህሪ ምንድን ነው?", opts: ["A) ለፖለቲካ ፍላጎት የሌለው፣ ተሳትፎው የቀነሰ እና የህይወት ውጣ ውረድን መቋቋም የሚከብደው", "B) ጦርነት ወዳድ እና ሀገር አስፋፊ", "C) የኢኮኖሚ ድቀት የፈጠረው ጠንካራ ሰራተኛ", "D) የውጭ ባህልን አጥብቆ የሚቃወም"], ans: 0, expAm: "ይህ ትውልድ በድሎት ስላደገ የህይወት ፈተናን መቋቋም የሚከብደው ትውልድ ነው።", expEn: "Raised during post-war economic boom, this generation lacks political interest and struggles with resilience against life's hardships." },
+            { q: "44. አሜሪካን ጨምሮ በምዕራቡ ዓለም ‹‹ታላቁ ትውልድ (The Great Generation)›› የሚባለው የትኛው ነው?", opts: ["A) በሶሻል ሚዲያ ዘመን ያደገው", "B) በታላቁ የኢኮኖሚ ድባቴ (Great Depression) እና በሁለተኛው የዓለም ጦርነት ፈተናዎች ውስጥ ያለፈው", "C) የኮምፒውተር ቴክኖሎጂን የፈጠረው", "D) በ21ኛው ክፍለ ዘመን የተወለደው"], ans: 1, expAm: "በኢኮኖሚ ድቀትና በጦርነት መከራ ያደጉት፣ ጠንካራ ስነ-ምግባርና ቁርጠኝነት ያላቸው ናቸው።", expEn: "Tempered by the Great Depression and WWII, they are renowned for their discipline, resilience, and collective dedication." },
+            { q: "45. ‹‹እሳት አመድን ወለደ›› የሚለው ሀገረኛ ብሂል ትውልድን ከማጥናት አንጻር ምንን ያሳያል?", opts: ["A) አዲሱ ትውልድ ሁልጊዜ የተሻለ መሆኑን", "B) ነባሩ ትውልድ አዲሱን ትውልድ ለመውቀስና ለማናናቅ የሚጠቀምበትን ክፍተት", "C) የኢኮኖሚ እድገትን", "D) የትምህርት መስፋፋትን"], ans: 1, expAm: "ትልቁ ትውልድ አዲሱን ሲወቅስ የሚጠቀምበት የተለመደ አባባል ሲሆን፣ በመካከል ያለውን የትውልድ ልዩነት ያሳያል።", expEn: "It reflects the generational gap where the older generation cynically critiques the younger generation's perceived flaws or loss of vigor." },
+            { q: "46. ‹‹ዋልታ ረገጥነት›› (Polarization) በፖለቲካ ውስጥ ምን ማለት ነው?", opts: ["A) የጋራ መግባባት መፍጠር", "B) በርዕዮተ ዓለም ልዩነት ሳይኖር በጥቃቅን ጉዳዮች የቡድን ስሜትን አለአግባብ በመለጠጥ መነጣጠል", "C) የውጭ ፖሊሲን ማጠናከር", "D) የኢኮኖሚ እኩልነትን ማምጣት"], ans: 1, expAm: "ልዩነቶችን በማስፋት እርስ በርስ እስከመጠፋፋት የሚያደርስ የፖለቲካ ጽንፈኝነት ነው።", expEn: "Polarization is the irrational stretching of minor differences into extreme, divisive group mentalities, often lacking deep ideological basis." },
+            { q: "47. ከሚከተሉት ውስጥ ‹‹ማህበራዊ አክራሪነት›› የሚባለው የትኛው ነው?", opts: ["A) የውጭ ምንዛሬ እጥረት", "B) ሴቶችን፣ አካል ጉዳተኞችንና የተለየ ተፈጥሮ ያላቸውን ማግለል፣ እንዲሁም ዘረኝነትና አውራጃዊነት", "C) የመንገድ መጨናነቅ", "D) የከተሞች መስፋፋት"], ans: 1, expAm: "በህብረተሰብ ውስጥ የሚታይ መድልዎ፣ ማግለል እና ጭፍን የዘር/የቦታ አድሎ ማህበራዊ አክራሪነት ይባላል።", expEn: "Social extremism involves systemic exclusion or prejudice against vulnerable groups, along with racism and aggressive regionalism." },
+            { q: "48. ‹‹የአፍሪካ ተሀድሶ ጠበቃነት›› በመደመር እሳቤ ምንን ያመለክታል?", opts: ["A) አፍሪካን እንደገና ቅኝ መገዛት", "B) የአፍሪካን ዘርፈ ብዙ ችግሮች መቅረፍን የሚተልምና ሁለንተናዊ አርነትን የሚያረጋግጥ ትግል", "C) የጦር መሳሪያ ውድድር", "D) የምዕራባውያንን እርዳታ መጠበቅ"], ans: 1, expAm: "አፍሪካን በኢኮኖሚ፣ በፖለቲካ እና በማህበራዊ ዘርፍ ሙሉ በሙሉ ነጻ የማድረግ እንቅስቃሴ ነው።", expEn: "It advocates for solving Africa's multifaceted crises to secure a profound, holistic emancipation and sustainable development." },
+            { q: "49. ‹‹የመደመር ነገ ትውልድ ነው›› ሲባል ምን ማለት ነው?", opts: ["A) መደመር ትላንትን ይረሳል ማለት ነው", "B) ሀገርን በጠንካራ መሠረት ላይ የመገንቢያ መንገድ አዲሱን ትውልድ በማነጽ ውስጥ ያለ ምስጢር መሆኑን ያሳያል", "C) ትውልድ ምንም ሚና የለውም ማለት ነው", "D) የዛሬን ትውልድ ማግለል ያስፈልጋል ማለት ነው"], ans: 1, expAm: "ማንኛውም ሀገራዊ ራዕይ ግቡን የሚመታው አዲሱን ትውልድ በትክክል መቅረጽ ሲቻል ብቻ ነው።", expEn: "It underscores that the ultimate success of the Medemer vision relies entirely on properly molding the future generation." },
+            { q: "50. የኢትዮጵያ ፖለቲካዊ ባህል ለዘመናት በየትኛው ርዕዮተ ዓለም አብዛኛውን ተጽዕኖ ሥር ወድቆ ቆይቷል?", opts: ["A) በካፒታሊዝም", "B) በሶሻሊዝም/ማርክሲዝም (በተለይ ከ1960ዎቹ ጀምሮ)", "C) በኒዮ-ሊበራሊዝ", "D) በፋሺዝም"], ans: 1, expAm: "ህልመኛው ትውልድ ካመጣው ጀምሮ፣ ማርክሲዝም በኢትዮጵያ ፖለቲካ ውስጥ ትልቅ ስር ሰድዶ ቆይቷል።", expEn: "Since the 1960s student movements, socialist and Marxist ideologies have profoundly dominated and shaped Ethiopian political culture." }
+        ];
+
+        // State Variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let studentName = "";
+        let studentId = "";
+        let userAnswers = new Array(quizData.length).fill(null); // stores selected option indices
+
+        // DOM Elements
+        const screenReg = document.getElementById('screen-registration');
+        const screenQuiz = document.getElementById('screen-quiz');
+        const screenRes = document.getElementById('screen-result');
+        const regError = document.getElementById('reg-error');
+
+        // Start Quiz Function
+        function startQuiz() {
+            const nameInput = document.getElementById('studentName').value.trim();
+            const idInput = document.getElementById('studentId').value.trim();
+
+            if (!nameInput || !idInput) {
+                regError.classList.remove('hidden');
+                return;
+            }
+
+            studentName = nameInput;
+            studentId = idInput;
+
+            document.getElementById('student-info-display').textContent = `${studentName} (${studentId})`;
+
+            screenReg.classList.add('hidden');
+            screenQuiz.classList.remove('hidden');
+            screenQuiz.classList.add('flex');
+            
+            renderQuestion();
+        }
+
+        // Render Question Function
+        function renderQuestion() {
+            const q = quizData[currentQuestionIndex];
+            
+            // Update Progress & Text
+            document.getElementById('current-question-num').textContent = currentQuestionIndex + 1;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+            document.getElementById('question-text').textContent = q.q;
+
+            // Render Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.opts.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 font-medium text-gray-700 transition-all focus:outline-none';
+                btn.textContent = optText;
+                btn.onclick = () => selectOption(idx);
+                optionsContainer.appendChild(btn);
+            });
+
+            // Handle previously answered state
+            const expBox = document.getElementById('explanation-box');
+            if (userAnswers[currentQuestionIndex] !== null) {
+                showFeedback(userAnswers[currentQuestionIndex]);
+            } else {
+                expBox.classList.add('hidden');
+            }
+
+            // Update Next/Submit Button state
+            updateNavButtons();
+        }
+
+        // Select Option (Irreversible Instant Feedback)
+        function selectOption(optIdx) {
+            // Irreversible: if already answered, do nothing
+            if (userAnswers[currentQuestionIndex] !== null) return;
+
+            userAnswers[currentQuestionIndex] = optIdx;
+            
+            // Score calculation
+            if (optIdx === quizData[currentQuestionIndex].ans) {
+                score++;
+            }
+
+            showFeedback(optIdx);
+            updateNavButtons();
+        }
+
+        // Show Feedback
+        function showFeedback(selectedIdx) {
+            const q = quizData[currentQuestionIndex];
+            const buttons = document.getElementById('options-container').children;
+
+            // Highlight buttons
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('hover:border-indigo-300', 'hover:bg-indigo-50', 'cursor-pointer');
+                buttons[i].classList.add('cursor-not-allowed', 'opacity-75');
+                buttons[i].onclick = null; // Disable clicking
+
+                if (i === q.ans) {
+                    buttons[i].classList.replace('border-gray-200', 'border-green-500');
+                    buttons[i].classList.add('bg-green-50', 'text-green-800');
+                    buttons[i].classList.remove('opacity-75');
+                } else if (i === selectedIdx && i !== q.ans) {
+                    buttons[i].classList.replace('border-gray-200', 'border-red-500');
+                    buttons[i].classList.add('bg-red-50', 'text-red-800', 'line-through');
+                }
+            }
+
+            // Show Explanation
+            const expBox = document.getElementById('explanation-box');
+            const expTitle = document.getElementById('feedback-title');
+            
+            if (selectedIdx === q.ans) {
+                expTitle.textContent = "✅ Correct!";
+                expTitle.className = "font-bold text-lg mb-2 text-green-600";
+                expBox.className = "mb-6 p-5 rounded-xl border border-green-200 bg-green-50/50 fade-in block";
+            } else {
+                expTitle.textContent = "❌ Incorrect";
+                expTitle.className = "font-bold text-lg mb-2 text-red-600";
+                expBox.className = "mb-6 p-5 rounded-xl border border-red-200 bg-red-50/50 fade-in block";
+            }
+
+            document.getElementById('exp-am').textContent = q.expAm;
+            document.getElementById('exp-en').textContent = q.expEn;
+        }
+
+        // Navigation
+        function updateNavButtons() {
+            const btnBack = document.getElementById('btn-back');
+            const btnNext = document.getElementById('btn-next');
+
+            btnBack.disabled = (currentQuestionIndex === 0);
+
+            if (currentQuestionIndex === quizData.length - 1) {
+                btnNext.textContent = "Submit Quiz ✓";
+                btnNext.classList.replace('bg-indigo-600', 'bg-green-600');
+                btnNext.classList.replace('hover:bg-indigo-700', 'hover:bg-green-700');
+            } else {
+                btnNext.textContent = userAnswers[currentQuestionIndex] !== null ? "Next \u2192" : "Skip \u2192";
+                btnNext.classList.replace('bg-green-600', 'bg-indigo-600');
+                btnNext.classList.replace('hover:bg-green-700', 'hover:bg-indigo-700');
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex === quizData.length - 1) {
+                showResults();
+            } else {
+                currentQuestionIndex++;
+                renderQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        // Results
+        function showResults() {
+            screenQuiz.classList.add('hidden');
+            screenQuiz.classList.remove('flex');
+            screenRes.classList.remove('hidden');
+
+            document.getElementById('res-name').textContent = studentName;
+            document.getElementById('res-id').textContent = studentId;
+            document.getElementById('res-score').textContent = `${score} / ${quizData.length}`;
+            
+            const percent = ((score / quizData.length) * 100).toFixed(1);
+            document.getElementById('res-percent').textContent = `${percent}%`;
+        }
+
+        // Email Feature
+        function sendEmail() {
+            const email = "mesayferedegn2@gmail.com";
+            const subject = encodeURIComponent(`Quiz Results: ${studentName}`);
+            
+            let body = `Student Details:%0A`;
+            body += `Name: ${studentName}%0A`;
+            body += `ID Number: ${studentId}%0A`;
+            body += `---------------------------%0A`;
+            body += `Final Score: ${score} / ${quizData.length}%0A`;
+            body += `Percentage: ${((score / quizData.length) * 100).toFixed(1)}%%0A`;
+            
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        }
+    </script>
+</body>
+</html>
